@@ -483,7 +483,7 @@ This project is provided as-is for educational and professional use.
 
 **Robinson Martinez** - SDET & QA Automation Engineer
 
-- LinkedIn: [linkedin.com/in/robinsonmartinez23](https://linkedin.com/in/robinsonmartinez23)
+- LinkedIn: [linkedin.com/in/robinsonmartinezm](https://www.linkedin.com/in/robinsonmartinezm)
 - GitHub: [@robinsonmartinez23](https://github.com/robinsonmartinez23)
 
 ## Support
