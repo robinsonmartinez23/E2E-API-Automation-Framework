@@ -13,6 +13,10 @@ public class AppConstants {
 
     public static final String CREATE_USER_SHEET = "createuser";
 
+    // Apache HttpClient param names (must be written EXACTLY, a typo is silently ignored)
+    public static final String HTTP_CONNECTION_TIMEOUT = "http.connection.timeout";
+    public static final String HTTP_SOCKET_TIMEOUT = "http.socket.timeout";
+
     // Timeouts (milliseconds) used by RestClient for every request
     public static final int CONNECT_TIMEOUT_MS = 10000; // 10 seconds to open the connection (network)
     public static final int READ_TIMEOUT_MS = 30000;    // 30 seconds to wait for the response (server)

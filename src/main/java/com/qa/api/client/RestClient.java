@@ -46,9 +46,9 @@ public class RestClient {
     private static final RestAssuredConfig TIMEOUT_CONFIG = RestAssured.config()    // Creates a new object with default configuration
                                                                                     // without new keyword (new RestAssuredConfig)
             .httpClient(HttpClientConfig.httpClientConfig() // httpClient returns the object edited with the new HTTP client section;
-                                                            // // HttpClientConfig.httpClientConfig() creates that section (default values)
-                    .setParam("http.connection.timeout", AppConstants.CONNECT_TIMEOUT_MS) // edit the section: 10 s to connect
-                    .setParam("http.socket.timeout", AppConstants.READ_TIMEOUT_MS)); // edit the section: 30 s to wait for the response
+                                                            // HttpClientConfig.httpClientConfig() creates that section (default values)
+                    .setParam(AppConstants.HTTP_CONNECTION_TIMEOUT, AppConstants.CONNECT_TIMEOUT_MS) // edit the section: 10 s to connect
+                    .setParam(AppConstants.HTTP_SOCKET_TIMEOUT, AppConstants.READ_TIMEOUT_MS)); // edit the section: 30 s to wait for the response
 
     // ===================== PREVIOUS setup() (for reference) =====================
     // This is the original setup(), BEFORE adding timeouts.
