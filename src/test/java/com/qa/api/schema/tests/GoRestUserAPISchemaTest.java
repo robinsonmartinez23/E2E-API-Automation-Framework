@@ -20,10 +20,6 @@ import org.testng.annotations.Test;
 @Story("US 200: Feature go rest api - Schema Validation")
 public class GoRestUserAPISchemaTest extends BaseTest {
 
-    @BeforeClass
-    public void setToken(){
-        ConfigManager.setProperty("bearertoken", "081368555efd9e49c46a729ba889822011be6ed2977146ecfcdd4d33e33ccf0e");
-    }
     @Test
     public void getAllUsersAPISchemaTest() {
         Response response = restClient.get(BASE_URL_GOREST, GOREST_USERS_ENDPOINT, null, null, AuthType.BEARER_TOKEN, ContentType.ANY);

@@ -23,7 +23,7 @@ public class AmadeusAPITest extends BaseTest {
 
         accessToken = response.jsonPath().getString("access_token");
         System.out.println("Access Token: "+ accessToken);
-        ConfigManager.setProperty("bearertoken", accessToken);
+        ConfigManager.setProperty("amadeus.token", accessToken); // Amadeus has its own key
     }
 
 //    @Test

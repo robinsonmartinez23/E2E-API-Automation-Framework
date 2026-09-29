@@ -28,7 +28,7 @@ public class ContactsAPITests extends BaseTest {
         Assert.assertEquals(response.statusCode(), 200);
         tokenId = response.jsonPath().getString("token");
         System.out.println("Contacts login JWT token ====>" + tokenId);
-        ConfigManager.setProperty("bearertoken", tokenId); // It will override the existing tokenId value in the config file.
+        ConfigManager.setProperty("contacts.token", tokenId); // Contacts has its own key, so it no longer overwrites the GoRest token
     }
 
     @Test

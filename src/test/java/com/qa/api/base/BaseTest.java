@@ -11,7 +11,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Listeners;
 
-@Listeners(ChainTestListener.class)
+@Listeners(ChainTestListener.class) // Creates listener (test began, passed?, failed?) with this create the HTL report.
 public class BaseTest {
 
     protected RestClient restClient;
@@ -42,6 +42,9 @@ public class BaseTest {
 
     @BeforeSuite
     public void setupAllureReport(){
+        // Global REST Assured filter (not a TestNG listener):
+        // intercepts every request/response and attaches them to the running test in the Allure report.
+        // Test status (pass/fail) comes from the allure-testng listener, auto-registered via the pom.xml.
         RestAssured.filters((new AllureRestAssured()));
         BASE_URL_GOREST = ConfigManager.getProperty("baseurl.gorest").trim();
         BASE_URL_CONTACTS = ConfigManager.getProperty("baseurl.contacts").trim();

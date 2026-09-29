@@ -3,10 +3,13 @@ package com.qa.api.client;
 
 import com.aventstack.chaintest.plugins.ChainTestListener;
 import com.qa.api.configmanager.ConfigManager;
+import com.qa.api.constants.AppConstants;
 import com.qa.api.constants.AuthType;
 import com.qa.api.exceptions.APIException;
 import io.qameta.allure.Step;
 import io.restassured.RestAssured;
+import io.restassured.config.HttpClientConfig;
+import io.restassured.config.RestAssuredConfig;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.restassured.specification.RequestSpecification;
@@ -31,20 +34,83 @@ public class RestClient {
     private final ResponseSpecification responseSpec200or201 = expect().statusCode(anyOf(equalTo(200),equalTo(201)));
     private final ResponseSpecification responseSpec200or404 = expect().statusCode(anyOf(equalTo(200),equalTo(404)));
 
+    // ===================== TIMEOUTS =====================
+    // Without timeouts, a request that gets no answer can hang forever (see "NO RESPONSE?" below).
+    // With timeouts, the hang becomes a clear exception that tells us WHERE it got stuck:
+    // - Connect timeout: can't reach the server (network: firewall, proxy, VPN) -> "connect timed out"
+    // - Read timeout: connected, but the server never answered                  -> "Read timed out"
+    // - "http.connection.timeout": name reserved by Apache HttpClient -> max time to connect to the server.
+    // - "http.socket.timeout": name reserved by Apache HttpClient -> max time to wait for a response once connected.
+    // - These names must be written EXACTLY: a typo is silently ignored by Apache (no error, no timeout).
+    // ====================================================
+    private static final RestAssuredConfig TIMEOUT_CONFIG = RestAssured.config()    // Creates a new object with default configuration
+                                                                                    // without new keyword (new RestAssuredConfig)
+            .httpClient(HttpClientConfig.httpClientConfig() // httpClient returns the object edited with the new HTTP client section;
+                                                            // // HttpClientConfig.httpClientConfig() creates that section (default values)
+                    .setParam("http.connection.timeout", AppConstants.CONNECT_TIMEOUT_MS) // edit the section: 10 s to connect
+                    .setParam("http.socket.timeout", AppConstants.READ_TIMEOUT_MS)); // edit the section: 30 s to wait for the response
 
+    // ===================== PREVIOUS setup() (for reference) =====================
+    // This is the original setup(), BEFORE adding timeouts.
+    // NOTE: This setup does NOT handle timeouts: RestAssured.given() uses the default config,
+    // so a request that gets no answer can hang forever. Kept commented out for learning purposes.
+    // ============================================================================
+    // private RequestSpecification setup(String baseUrl, AuthType authType, ContentType contentType) {
+    //     ChainTestListener.log("API base url : "+ baseUrl);   // ChainTestListener log
+    //     ChainTestListener.log("Auth Type : "+ authType.toString());   // ChainTestListener log
+    //     RequestSpecification request = RestAssured.given() // start a new request
+    //             .log().all()               // print the full request in the console
+    //             .baseUri(baseUrl)          // base URL from the .properties file
+    //             .contentType(contentType)  // format of what we send
+    //             .accept(contentType);      // format we expect back
+    // 
+    //     switch (authType){
+    //         case BEARER_TOKEN:
+    //             request.header("Authorization", "Bearer "+ ConfigManager.getProperty("bearertoken"));
+    //             break;
+    //         case BASIC_AUTH:
+    //             request.header("Authorization", "Basic " + generateBasicAuthToken());
+    //             break;
+    //         case API_KEY:
+    //             request.header("x-api-key", ConfigManager.getProperty("apikey"));
+    //             break;
+    //         case NO_AUTH:
+    //             System.out.println("Auth is not required");
+    //             break;
+    //         default:
+    //             System.out.println("This AuthType is not supported, please check the AuthType enum");
+    //             throw new APIException("===Invalid AuthType===");
+    //     }
+    //     return request;
+    // }
+    // ============================================================================
 
 
     private RequestSpecification setup(String baseUrl, AuthType authType, ContentType contentType) {
         ChainTestListener.log("API base url : "+ baseUrl);   // ChainTestListener log
         ChainTestListener.log("Auth Type : "+ authType.toString());   // ChainTestListener log
-        RequestSpecification request = RestAssured.given().log().all()
-                .baseUri(baseUrl)
-                .contentType(contentType)
-                .accept(contentType);
+        RequestSpecification request = RestAssured.given() // start a new request
+                .config(TIMEOUT_CONFIG)    // apply the timeouts (10 s connect / 30 s response)
+                .log().all()               // print the full request in the console
+                .baseUri(baseUrl)          // base URL from the .properties file
+                .contentType(contentType)  // format of what we send
+                .accept(contentType);      // format we expect back
+
+        // ===================== AUTHENTICATION =====================
+        // Authentication = Prove to the server who you are.
+        // The test only says WHICH type it needs: AuthType.BEARER_TOKEN, AuthType.BASIC_AUTH, AuthType.API_KEY, etc;
+        // the credentials come from the .properties file of the selected environment (ConfigManager).
+        // If authentication fails, the server returns 401 Unauthorized.
 
         switch (authType){
+            // BEARER TOKEN
+            // The client sends a token it already has: "Authorization: Bearer <token>".
+            // "Bearer" means "whoever carries this token gets access", like a concert ticket.
+            // The token proves you logged in before, so no username/password is sent.
+            // OAuth 2.0 is NOT a separate case: OAuth 2.0 is how you GET a token
+            // (see the OAuth2 post() method, used by Amadeus). Once you have it, you send it here as a Bearer token.
             case BEARER_TOKEN:
-                request.header("Authorization", "Bearer "+ ConfigManager.getProperty("bearertoken"));
+                request.header("Authorization", "Bearer " + getBearerToken(baseUrl)); // each API gets ITS OWN token
                 break;
             case BASIC_AUTH:
                 request.header("Authorization", "Basic " + generateBasicAuthToken());
@@ -60,6 +126,25 @@ public class RestClient {
                 throw new APIException("===Invalid AuthType===");
         }
         return request;
+    }
+
+    // ===================== ONE BEARER TOKEN PER API =====================
+    // Each API has its own token, stored under its own key, so tests never overwrite each other's token.
+    // Before: all APIs shared "bearertoken" -> if Contacts logged in first, GoRest sent the Contacts token -> 401.
+    // - gorest.token   -> static token from the .properties file
+    // - contacts.token -> set at runtime by ContactsAPITests (login)
+    // - amadeus.token  -> set at runtime by AmadeusAPITest (OAuth 2.0)
+    private String getBearerToken(String baseUrl) {
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.gorest"))) {
+            return ConfigManager.getProperty("gorest.token");
+        }
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.contacts"))) {
+            return ConfigManager.getProperty("contacts.token");
+        }
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.oauth2Amadeus"))) {
+            return ConfigManager.getProperty("amadeus.token");
+        }
+        throw new APIException("===No Bearer token configured for base URL: " + baseUrl + "===");
     }
 
     private String generateBasicAuthToken() {
@@ -80,6 +165,27 @@ public class RestClient {
             request.pathParams(pathParams);
         }
     }
+
+    // ============ NO RESPONSE? THINK OF A PHONE CALL ============
+    // If a request gets no HTTP status at all (not even a 404), check the exception:
+    //
+    // 1. "The phone number doesn't exist"      -> UnknownHostException (DNS)
+    //    Fails right away. The name can't be found:
+    //    wrong URL in the .properties file, no VPN, or the server no longer exists (e.g. Amadeus).
+    //
+    // 2. "Phone exists but is busy"             -> ConnectException: Connection refused
+    //    Fails right away. The server is there, but the service is down.
+    //
+    // 3. "Phone exists but is not ringing"      -> SocketTimeoutException: connect timed out
+    //    Waits. Something blocks the way: firewall, proxy or VPN.
+    //
+    // 4. "Someone picks up but says nothing"    -> SocketTimeoutException: Read timed out
+    //    Waits. The server got the request but never answered.
+    //    Without a timeout, the test can wait forever.
+    //
+    // First step: try the same request in Postman.
+    // If it works there, the problem is in our code, not the server.
+    // ============================================================
 
     //***********Get response from the API***************
 

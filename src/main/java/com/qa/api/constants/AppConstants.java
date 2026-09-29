@@ -12,4 +12,8 @@ public class AppConstants {
     public static final String USER_PASSWORD = "<PASSWORD>";
 
     public static final String CREATE_USER_SHEET = "createuser";
+
+    // Timeouts (milliseconds) used by RestClient for every request
+    public static final int CONNECT_TIMEOUT_MS = 10000; // 10 seconds to open the connection (network)
+    public static final int READ_TIMEOUT_MS = 30000;    // 30 seconds to wait for the response (server)
 }
