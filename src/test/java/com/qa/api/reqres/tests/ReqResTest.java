@@ -16,7 +16,7 @@ public class ReqResTest extends BaseTest {
         Map<String,String> queryParams = new java.util.HashMap<>();
         queryParams.put("page", "2");
 
-        Response response = restClient.get(BASE_URL_REQRES,REQRES_ENDPOINT,queryParams,null, AuthType.API_KEY, ContentType.ANY);
+        Response response = restClient.get(BASE_URL_REQRES,REQRES_ENDPOINT,queryParams,null, AuthType.API_KEY, ContentType.JSON);
         Assert.assertEquals(response.statusCode(), 200);
     }
 }

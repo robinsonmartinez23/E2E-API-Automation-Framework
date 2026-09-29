@@ -40,7 +40,11 @@ public class CreateUserTest extends BaseTest {
         return ExcelUtil.readData(AppConstants.CREATE_USER_SHEET);
     }
 
-
+    /*
+     The @DataProvider is the tool that enables the Data Driven Testing (DDT):Logic and data are clearly separated
+     DDT Hardcoded @Test (dataProvider = "getUserData")
+     DDT Using external file @Test (dataProvider = "getUserExcelData")
+     */
     //@Test (dataProvider = "getUserData")
     @Test (dataProvider = "getUserExcelData")
     public void createAUserWithDataProviderTest(String name, String gender, String status){

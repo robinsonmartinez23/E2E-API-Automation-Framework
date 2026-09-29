@@ -11,6 +11,7 @@ public class ConfigManager {
     // mvn clean install --> No environment selected (We need to set default env.)
     // env --> environment variable (System)
     static {
+      //Get key env (-Denv) from Jenkinsfile, if you don't find it, set prod by default
       String envName = System.getProperty("env","prod");
       System.out.println("Running test on environment: "+envName);
       String fileName = "config_"+envName+".properties";

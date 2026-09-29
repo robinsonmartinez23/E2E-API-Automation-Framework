@@ -80,7 +80,7 @@
       <artifactId>allure-testng</artifactId>
       <version>2.29.0</version>
     </dependency>
-    <!--Apache poi is necessary to handle *.xml files-->
+    <!--Apache poi is necessary to handle *.xls files-->
     <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
