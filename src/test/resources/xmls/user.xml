@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Ejemplo de body de request en formato XML.
+    Es el equivalente en XML de jsons/user.json.
+    Esta carpeta guarda archivos XML de prueba: bodies de request,
+    respuestas esperadas o schemas XSD para APIs que trabajan con XML.
+-->
+<user>
+    <email>amandamp1@hotmail.com</email>
+    <name>Amanda</name>
+    <gender>female</gender>
+    <status>active</status>
+</user>
