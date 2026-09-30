@@ -129,21 +129,13 @@ public class RestClient {
     }
 
     // ===================== ONE BEARER TOKEN PER API =====================
-    // Each API has its own token, stored under its own key, so tests never overwrite each other's token.
-    // Before: all APIs shared "bearertoken" -> if Contacts logged in first, GoRest sent the Contacts token -> 401.
-    // - gorest.token   -> static token from the .properties file
-    // - contacts.token -> set at runtime by ContactsAPITests (login)
-    // - amadeus.token  -> set at runtime by AmadeusAPITest (OAuth 2.0)
+    // NOTE: the URLs are read from the .properties of the current environment (no hardcoding),
+    //       so this works in every env. A new API that needs a Bearer token only needs a new line here.
     private String getBearerToken(String baseUrl) {
-        if (baseUrl.equals(ConfigManager.getProperty("baseurl.gorest"))) {
-            return ConfigManager.getProperty("gorest.token");
-        }
-        if (baseUrl.equals(ConfigManager.getProperty("baseurl.contacts"))) {
-            return ConfigManager.getProperty("contacts.token");
-        }
-        if (baseUrl.equals(ConfigManager.getProperty("baseurl.oauth2Amadeus"))) {
-            return ConfigManager.getProperty("amadeus.token");
-        }
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.gorest")))        return ConfigManager.getProperty("gorest.token");
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.contacts")))      return ConfigManager.getProperty("contacts.token");
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.oauth2Amadeus"))) return ConfigManager.getProperty("amadeus.token");
+        if (baseUrl.equals(ConfigManager.getProperty("baseurl.mock")))          return ConfigManager.getProperty("mock.token");
         throw new APIException("===No Bearer token configured for base URL: " + baseUrl + "===");
     }
 
@@ -163,6 +155,15 @@ public class RestClient {
         }
         if(pathParams != null){
             request.pathParams(pathParams);
+        }
+    }
+
+    // Form params travel in the BODY (application/x-www-form-urlencoded), not in the URL like query/path params.
+    // Only the param NAMES are logged: the values may carry passwords or secrets.
+    private void applyFormParams(RequestSpecification request, Map<String, String> formParams){
+        if(formParams != null){
+            ChainTestListener.log("Form Params : " + formParams.keySet()); // ChainTestListener log (names only)
+            request.formParams(formParams);
         }
     }
 
@@ -314,27 +315,29 @@ public class RestClient {
         return response;
     }
 
-    /**
-     * Sends a POST request to the specified API endpoint using client credentials and
-     * a grant type typically, for OAuth2 authentication. The request includes form parameters
-     * and a defined content type.
+     /**
+     * Sends a POST request to get an OAuth2 access token using the client_credentials grant.
+     * The client_id, client_secret and grant_type are sent as form params (ContentType.URLENC).
      * e.g.
      * Post using OAuth2 client_credentials (form params, ContentType.URLENC):
      *   amadeus.tests/
-     *      - AmadeusAPITest/getOAuth2Token (@BeforeMethod)    -> gets the access_token, saved as amadeus.token
-     * Note: it does not use setup(), so no timeouts, no logs and no status validation.
+     *      - AmadeusAPITest/getOAuth2Token (@BeforeMethod) -> gets the access_token, saved as amadeus.token
+     * ***********************************************************************************************
+     * IMPORTANT: it does not use setup(), so no timeouts, no logs and no status validation. Avoid it!
+     * ***********************************************************************************************
      *
      * @param baseUrl      The base URL for the API.
      * @param endPoint     The specific endpoint to which the POST request is sent.
      * @param clientId     The client ID required for the request authentication.
      * @param clientSecret The client secret required for the request authentication.
      * @param grantType    The type of grant (e.g., client credentials) used in the request.
-     * @param contentType  The content type of the request (e.g., application/json).
+     * @param contentType  The content type of the request (ContentType.URLENC for OAuth2).
      * @return The response received from the API call encapsulated in a Response object.
      */
     public Response post(String baseUrl, String endPoint,
-                             String clientId, String clientSecret, String grantType,
-                             ContentType contentType){
+                            String clientId,
+                            String clientSecret, String grantType,
+                            ContentType contentType){
         Response response = RestAssured.given()
                 .contentType(contentType)
                 .formParam("grant_type", grantType)
@@ -345,6 +348,37 @@ public class RestClient {
         response.prettyPrint();
         return response;
 
+    }
+
+    /**
+     * Sends a POST request with form params (application/x-www-form-urlencoded)
+     * and validates the response status against the expected one.
+     * Unlike post(..., clientId, clientSecret, grantType, ...), the form params are not fixed:
+     * the test decides which ones to send, so it works for any OAuth2 grant.
+     * e.g.
+     * OAuth2 password grant (login with user):
+     *   formParams = {grant_type=password, username=gold.user, password=gold123}
+     * OAuth2 refresh_token grant (renew the token without the password):
+     *   formParams = {grant_type=refresh_token, refresh_token=<token>}
+     *
+     * @param baseUrl        The base URL for the API.
+     * @param endPoint       The specific endpoint to which the POST request will be sent.
+     * @param formParams     A map with all the form params to be sent (key = param name, value = param value).
+     * @param authType       The authentication type (usually AuthType.NO_AUTH: you don't have a token yet, you are asking for one).
+     * @param contentType    The content type of the request (ContentType.URLENC for OAuth2 ).
+     * @param expectedStatus The HTTP status code the test expects (e.g. 200, 401).
+     * @return The response received from the API call.
+     */
+    public Response post(String baseUrl, String endPoint,
+                         Map<String,String> formParams,
+                         AuthType authType,
+                         ContentType contentType,
+                         int expectedStatus){
+        RequestSpecification request = setup(baseUrl, authType, contentType); // timeouts, logs, baseUri, contentType and auth
+        applyFormParams(request, formParams); // apply formParams to the body
+        Response response = request.post(endPoint).then().statusCode(expectedStatus).extract().response();
+        response.prettyPrint();
+        return response;
     }
 
     //***************PUT*****************

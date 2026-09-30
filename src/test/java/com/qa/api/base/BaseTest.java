@@ -37,7 +37,7 @@ public class BaseTest {
     protected final static String ERGAST_CIRCUIT_ENDPOINT = "/api/f1/2017/circuits.xml";
 
     //***********Localhost***********//
-    protected final static String BASE_URL_MOCK_SERVER = "http://localhost:8089";
+    protected static String BASE_URL_MOCK_SERVER;
 
 
     @BeforeSuite
@@ -53,6 +53,7 @@ public class BaseTest {
         BASE_URL_PRODUCTS = ConfigManager.getProperty("baseurl.products").trim();
         BASE_URL_OAUTH2_AMADEUS = ConfigManager.getProperty("baseurl.oauth2Amadeus").trim();
         BASE_URL_ERGAST_CIRCUIT = ConfigManager.getProperty("baseurl.ergastCircuit").trim();
+        BASE_URL_MOCK_SERVER = ConfigManager.getProperty("baseurl.mock").trim();
     }
 
     @BeforeTest
