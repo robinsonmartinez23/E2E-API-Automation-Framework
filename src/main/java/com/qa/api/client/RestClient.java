@@ -213,10 +213,53 @@ public class RestClient {
         return response;
     }
 
+    /**
+     * Sends a GET request to a specified endpoint and validates the response status against the expected one.
+     *
+     * @param baseUrl        The base URL for the API.
+     * @param endPoint       The specific endpoint to which the GET request will be sent.
+     * @param queryParams    A map of query parameters to be sent with the request.
+     * @param pathParams     A map of path parameters to be sent with the request.
+     * @param authType       The type of authentication to be used for the request.
+     * @param contentType    The content type for the request.
+     * @param expectedStatus The HTTP status code the test expects (e.g. 200, 401, 403).
+     * @return The response received from the API call.
+     */
+    @Step("Calling GET api with base url: {0}, expecting status: {6}")
+    public Response get(String baseUrl, String endPoint,
+                        Map<String, String> queryParams,
+                        Map<String,String> pathParams,
+                        AuthType authType,
+                        ContentType contentType, int expectedStatus){
+        RequestSpecification request = setup(baseUrl, authType, contentType);
+        applyParams(request, queryParams, pathParams);
+        Response response = request.get(endPoint).then().statusCode(expectedStatus).extract().response();
+        response.prettyPrint();
+        return response;
+    }
+
     //****************Post*****************
 
     /**
      * Sends a POST request to a specified endpoint with the given parameters, request body, and authentication type.
+     * e.g.
+     * Post using pojo:
+     *   gorest.tests/
+     *      - CreateUserTest/createAUserWithPOJOTest           -> User pojo
+     *      - CreateUserTest/createAUserWithDataProviderTest   -> User pojo built with Excel data (DDT)
+     *      - DeleteUserTest/deleteUserTest                    -> User pojo, to create the user the test needs first
+     *      - UpdateUserTest/updateUserTest                    -> User pojo, to create the user the test needs first
+     *      - GetAUserWithDeserializationTest/createAUserTest  -> User pojo, to create the user the test needs first
+     *   schema.tests/
+     *      - GoRestUserAPISchemaTest/createUserAPISchemaTest  -> User pojo, then validates the response schema
+     *   contacts.tests/
+     *      - ContactsAPITests/getToken (@BeforeMethod)        -> ContactsCredentials pojo (login, returns a JWT token)
+     * Post using String:
+     *   gorest.tests/
+     *      - CreateUserTest/createAUserWithJsonStringTest     -> JSON written as a String
+     *   moking.test/
+     *      - MockCreateUserAPITest/createAFakeUserTest        -> JSON String sent to the WireMock server
+     * Note: a File also fits T, but Java picks the more specific post(..., File, ...) below.
      *
      * @param <T>          The type of the request body (file, pojo, etc.).
      * @param baseUrl      The base URL for the API.
@@ -244,6 +287,10 @@ public class RestClient {
     /**
      * Sends a POST request to a specified endpoint with the given file as the request body,
      * along with optional query parameters, path parameters, and authentication type.
+     * e.g.
+     * Post using File:
+     *   gorest.tests/
+     *      - CreateUserTest/createAUserTestWithJsonfile       -> ./src/test/resources/jsons/user.json
      *
      * @param baseUrl      The base URL for the API.
      * @param endPoint     The specific endpoint to which the POST request will be sent.
@@ -271,6 +318,11 @@ public class RestClient {
      * Sends a POST request to the specified API endpoint using client credentials and
      * a grant type typically, for OAuth2 authentication. The request includes form parameters
      * and a defined content type.
+     * e.g.
+     * Post using OAuth2 client_credentials (form params, ContentType.URLENC):
+     *   amadeus.tests/
+     *      - AmadeusAPITest/getOAuth2Token (@BeforeMethod)    -> gets the access_token, saved as amadeus.token
+     * Note: it does not use setup(), so no timeouts, no logs and no status validation.
      *
      * @param baseUrl      The base URL for the API.
      * @param endPoint     The specific endpoint to which the POST request is sent.
