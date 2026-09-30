@@ -13,10 +13,10 @@ public class APIMocks {
                         .withHeader("Content-Type", "application/json")
                         .withHeader("server-name", "bankserver")
                         .withBody("{\n"
-                                + "    \"_id\": 1,\n"
-                                + "    \"name\": \"tom\",\n"
-                                + "    \"age\": 30,\n"
-                                + "    \"salary\": 15.1\n"
+                                + "    \"_id\": 107,\n"
+                                + "    \"name\": \"Robin\",\n"
+                                + "    \"age\": 47,\n"
+                                + "    \"status\": \"Active\"\n"
                                 + "}")
                 )
         );
@@ -30,7 +30,7 @@ public class APIMocks {
                         .withStatus(200)
                         .withHeader("Content-Type", "application/json")
                         .withHeader("server-name", "bankserver")
-                        .withBodyFile("mockuser.json")
+                        .withBodyFile("mockuser.json") // WireMock ALWAYS will search file name in */resourses/__file
                 )
         );
     }
@@ -63,10 +63,10 @@ public class APIMocks {
                         .withHeader("Content-Type", "application/json")
                         .withHeader("server-name", "bankserver")
                         .withBody("{\n"
-                                + "    \"_id\": 1,\n"
-                                + "    \"name\": \"tom\",\n"
-                                + "    \"age\": 30,\n"
-                                + "    \"salary\": 15.1\n"
+                                + "    \"_id\": 107,\n"
+                                + "    \"name\": \"Robin\",\n"
+                                + "    \"age\": 47,\n"
+                                + "    \"status\": \"Active\"\n"
                                 + "}"
                         )
 

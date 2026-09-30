@@ -16,7 +16,7 @@ public class MockGetUserAPITest extends BaseTest {
         APIMocks.defineGetUserMock();
 
         Response response =
-                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.ANY);
+                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.JSON);
         response.then().assertThat().statusCode(200);
     }
 
@@ -26,7 +26,7 @@ public class MockGetUserAPITest extends BaseTest {
         APIMocks.defineGetUserMockWithJsonFile();
 
         Response response =
-                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.ANY);
+                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.JSON);
         response.then().assertThat().statusCode(200);
     }
 
@@ -39,7 +39,7 @@ public class MockGetUserAPITest extends BaseTest {
         userQueryMap.put("name", "Tom");
 
         Response response =
-                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", userQueryMap, null, AuthType.NO_AUTH, ContentType.ANY);
+                restClient.get(BASE_URL_MOCK_SERVER, "/api/users", userQueryMap, null, AuthType.NO_AUTH, ContentType.JSON);
         response.then().assertThat().statusCode(200);
     }
 }
