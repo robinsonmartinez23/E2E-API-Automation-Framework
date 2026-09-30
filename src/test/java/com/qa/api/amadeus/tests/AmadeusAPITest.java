@@ -6,6 +6,7 @@ import com.qa.api.constants.AuthType;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -36,7 +37,8 @@ public class AmadeusAPITest extends BaseTest {
     // OAuth 2.0 client_credentials: the app identifies itself with its client_id + client_secret (no user)
     // and receives an access_token, later sent as "Authorization: Bearer <token>".
     // Uses post(..., formParams, ...): timeouts, logs and status validation (200) come from setup().
-    @BeforeMethod
+    @BeforeClass
+    //@BeforeMethod // Executes before each method I can cost time.
     public void getAccessToken() {
         Map<String, String> tokenForm = new HashMap<>();
         tokenForm.put("grant_type", ConfigManager.getProperty("granttype_amadeus"));
@@ -65,7 +67,7 @@ public class AmadeusAPITest extends BaseTest {
         queryParams.put("maxPrice", "200");
 
 
-        Response response = restClient.get(BASE_URL_OAUTH2_AMADEUS, AMADEUS_FLIGHT_DEST_ENDPOINT, queryParams, null, AuthType.BEARER_TOKEN, ContentType.ANY);
+        Response response = restClient.get(BASE_URL_OAUTH2_AMADEUS, AMADEUS_FLIGHT_DEST_ENDPOINT, queryParams, null, AuthType.BEARER_TOKEN, ContentType.JSON);
         Assert.assertEquals(response.getStatusCode(), 200);
     }
 }

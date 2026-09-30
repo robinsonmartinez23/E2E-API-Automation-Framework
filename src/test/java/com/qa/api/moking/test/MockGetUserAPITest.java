@@ -13,7 +13,7 @@ import java.util.Map;
 public class MockGetUserAPITest extends BaseTest {
     @Test
     public void getDummyUserMockAPITest() {
-        APIMocks.defineGetUserMock();
+        APIMocks.defineGetUserMock(); // define the stubs of server
 
         Response response =
                 restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.JSON);
@@ -23,7 +23,7 @@ public class MockGetUserAPITest extends BaseTest {
 
     @Test
     public void getDummyUserMockAPIWithJsonFileTest() {
-        APIMocks.defineGetUserMockWithJsonFile();
+        APIMocks.defineGetUserMockWithJsonFile(); // define the stubs of server
 
         Response response =
                 restClient.get(BASE_URL_MOCK_SERVER, "/api/users", null, null, AuthType.NO_AUTH, ContentType.JSON);
@@ -33,7 +33,7 @@ public class MockGetUserAPITest extends BaseTest {
 
     @Test
     public void getDummyUserMockAPIWithQueryParamTest() {
-        APIMocks.defineGetUserMockWithQueryParam();
+        APIMocks.defineGetUserMockWithQueryParam(); // define the stubs of server
 
         Map<String, String> userQueryMap = new HashMap<String, String>();
         userQueryMap.put("name", "Tom");
